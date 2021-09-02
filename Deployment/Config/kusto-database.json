@@ -1,0 +1,61 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "clusters_kustocluster_name": {
+            "type": "string",
+            "metadata": {
+              "description": "Name of the call records kusto cluster"
+            }
+        },
+        "databases_kustodb_name": {
+            "type": "string",
+            "defaultValue": "callrecordsdb",
+            "metadata": {
+              "description": "Name of the call records database"
+            }
+        },
+        "location": {
+          "type": "string",
+          "defaultValue": "[resourceGroup().location]",
+          "metadata": {
+            "description": "Location for all resources."
+          }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "name": "[concat(parameters('clusters_kustocluster_name'), '/', parameters('databases_kustodb_name'))]",
+            "type": "Microsoft.Kusto/clusters/databases",
+            "apiVersion": "2020-06-14",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Kusto/clusters', parameters('clusters_kustocluster_name'))]"
+            ],
+            "properties": {
+                "softDeletePeriodInDays": 365,
+                "hotCachePeriodInDays": 31
+            }
+        },
+        {
+            "name": "[parameters('clusters_kustocluster_name')]",
+            "type": "Microsoft.Kusto/clusters",
+            "sku": {
+                "name": "Standard_E2a_v4",
+                "tier": "Standard",
+                "capacity": 2
+            },
+            "apiVersion": "2020-06-14",
+            "location": "[parameters('location')]",
+            "properties": {
+                "trustedExternalTenants": [],
+                "enableDiskEncryption": false,
+                "enableStreamingIngest": false,
+                "enablePurge": false,
+                "enableDoubleEncryption": false,
+                "engineType": "V2"
+            }
+        }
+    ]
+  }

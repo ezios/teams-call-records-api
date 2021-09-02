@@ -1,0 +1,26 @@
+{
+    "tenant": {
+        "subscriptionId": "a4d1fd10-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+        "tenantId": "f7bed8uc-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+    },
+    "azureGeneral": {
+        "Location": "<Azure Location e.g westeurope>",
+        "appRegistrationName": "<App Registration Name>",
+        "resourceGroup": "<Resource Group Name>"
+    },
+    "serviceBus": {
+        "service_BusNamespace_Name": "<Service Bus Namespace>",
+        "serviceBusName": "<Service Bus Topic Name>",
+        "serviceBusSubscriptionName": "<Service Bus Subscription Name>",
+        "serviceBusAuthenticationRule": "<Service Bus Authentication Rule Name>"
+    },
+    "eventHubs": {
+        "eventHubNamespaceName": "<Event Hub Namespace>"
+    },
+    "kustoCluster": {
+        "kustoClusterName": "<Azure Data Explorer Clustername>"
+    },
+    "functionApp": {
+        "functionAppName": "<Function App Name>"
+    }
+}

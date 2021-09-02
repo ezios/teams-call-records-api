@@ -1,0 +1,188 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "string"
+        },
+        "location": {
+            "defaultValue": "[resourceGroup().location]",
+            "type": "string"
+        },
+        "storageAccountName": {
+            "type": "string"
+        },
+        "appInsightsName": {
+            "type": "string"
+        },
+        "API_NOTIFICATION_URL": {
+            "defaultValue": "<Add the Function URL>",
+            "type": "string"
+        },
+        "APP_REGISTRATION_CLIENT_ID": {
+            "type": "string"
+        },     
+        "APP_REGISTRATION_CLIENT_SECRECT":{
+            "type": "string"
+        },
+        "APP_REGISTRATION_TENANT_ID": {
+            "type": "string"
+        },  
+        "EVENT_HUB_CALLS_CONNECTION_STR":{
+            "type": "string"
+        },
+        "EVENT_HUB_PARTICIPANTS_CONNECTION_STR": {
+            "type": "string"
+        },
+        "EVENT_HUB_SESSIONS_CONNECTION_STR":{
+              "type": "string"
+        },
+        "INGEST_STRING": {
+              "type": "string"
+        },
+        "INGESTFUNC_URL": {
+              "defaultValue": "<Add the Function URL>",
+              "type": "string"
+        },
+        "SERVICE_BUS_CONNECTION_STR": {
+              "type": "string"
+        },
+        "SERVICE_BUS_SUBSCRIPTION_NAME": {
+              "type": "string"
+        },
+        "SERVICE_BUS_TOPIC_NAME": {
+              "type": "string"
+        },
+        "linuxFxVersion": {
+            "type": "string",
+            "defaultValue": "python|3.9"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('name')]",
+            "type": "Microsoft.Web/sites",
+            "kind": "functionapp,linux",
+            "location": "[parameters('location')]",
+            "tags": {},
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+                "[concat('Microsoft.Insights/components/', parameters('appInsightsName'))]"
+            ],
+            "properties": {
+                "name": "[parameters('name')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "API_NOTIFICATION_URL",
+                            "value": "[parameters('API_NOTIFICATION_URL')]"
+                        },
+                        {
+                            "name": "APP_REGISTRATION_CLIENT_ID",
+                            "value": "[parameters('APP_REGISTRATION_CLIENT_ID')]"
+                        },     
+                        {
+                            "name": "APP_REGISTRATION_CLIENT_SECRECT",
+                            "value": "[parameters('APP_REGISTRATION_CLIENT_SECRECT')]"
+                        },
+                        {
+                            "name": "APP_REGISTRATION_TENANT_ID",
+                            "value": "[parameters('APP_REGISTRATION_TENANT_ID')]"
+                        },  
+                        {
+                            "name": "EVENT_HUB_CALLS_CONNECTION_STR",
+                            "value": "[parameters('EVENT_HUB_CALLS_CONNECTION_STR')]"
+                        },
+                        {
+                            "name": "EVENT_HUB_CALLS_NAME",
+                            "value": "calls"
+                        },
+                        {
+                            "name": "EVENT_HUB_PARTICIPANTS_CONNECTION_STR",
+                            "value": "[parameters('EVENT_HUB_PARTICIPANTS_CONNECTION_STR')]"
+                        },
+                        {
+                            "name": "EVENT_HUB_PARTICIPANTS_NAME",
+                            "value": "participants"
+                        },
+                        {
+                            "name": "EVENT_HUB_SESSIONS_CONNECTION_STR",
+                            "value": "[parameters('EVENT_HUB_SESSIONS_CONNECTION_STR')]"
+                        },
+                        {
+                            "name": "EVENT_HUB_SESSIONS_NAME",
+                            "value": "sessions"
+                        },
+                        {
+                            "name": "INGEST_STRING",
+                            "value": "[parameters('INGEST_STRING')]"
+                        },
+                        {
+                            "name": "INGESTFUNC_URL",
+                            "value": "[parameters('INGESTFUNC_URL')]"
+                        },
+                        {
+                            "name": "SERVICE_BUS_CONNECTION_STR",
+                            "value": "[parameters('SERVICE_BUS_CONNECTION_STR')]"
+                        },
+                        {
+                            "name": "SERVICE_BUS_SUBSCRIPTION_NAME",
+                            "value": "[parameters('SERVICE_BUS_SUBSCRIPTION_NAME')]"
+                        },
+                        {
+                            "name": "SERVICE_BUS_TOPIC_NAME",
+                            "value": "[parameters('SERVICE_BUS_TOPIC_NAME')]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "python"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2019-06-01').keys[0].value)]"
+                        },
+                        {
+                            "name": "AzureWebJobsDashboard",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('storageAccountName'),';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')), '2019-06-01').keys[0].value)]"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', parameters('appInsightsName')), '2015-05-01').InstrumentationKey]"
+                        }
+                    ],
+                    "linuxFxVersion": "[parameters('linuxFxVersion')]"
+                },
+                "reserved": true
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2"
+        },
+        {
+            "type": "Microsoft.Insights/components",
+            "apiVersion": "2015-05-01",
+            "name": "[parameters('appInsightsName')]",
+            "kind": "web",
+            "location": "[parameters('location')]",
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('name'))]": "Resource"
+            },
+            "properties": {
+                "Application_Type": "web",
+                "ApplicationId": "[parameters('appInsightsName')]"
+            }
+        }
+    ]
+}
