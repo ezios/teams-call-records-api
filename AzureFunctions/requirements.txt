@@ -1,0 +1,10 @@
+# DO NOT include azure-functions-worker in this file
+# The Python Worker is managed by Azure Functions platform
+# Manually managing azure-functions-worker may cause unexpected issues
+
+azure-functions
+# Caution: This following used SDK is a beta version and not the latest GA version
+# More details can be found here: https://azuresdkdocs.blob.core.windows.net/$web/python/azure-servicebus/7.0.0b7/index.html
+azure.servicebus==7.0.0b7
+azure.eventhub==5.2.0
+requests
