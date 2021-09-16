@@ -56,7 +56,7 @@ The following diagram shows how the data get stored:
 1. The function will then query the call records data from Graph API in a batch (20 call-id's)
 1. Then the call data will be split into 3 segments (Call, Participants, Sessions) and send to 3 Event Hubs. Data Connection's in ADX will write these segments then to corresponding tables in a database inside the cluster.
 
-The data can then be directly queried based on the call-id's using KQL or Power BI for example. All data is stored in row JSON format as dynamic fields and require some additional data transformation based on your needs. In Addition, also other sources like ASN information or network details can be added to seperate tables to allow even more enhanced queries.
+The data can then be directly queried based on the call-id's using KQL or Power BI for example. All data is stored in raw JSON format as dynamic fields and require some additional data transformation based on your needs. In Addition, also other sources like ASN information or network details can be added to seperate tables to allow even more enhanced queries.
 
 
 ### Built With
@@ -99,6 +99,14 @@ git clone https://github.com/tobiheim/teams-call-records-api.git
 #### 2. Update the Configuration file
 
 First you need to adjust the configuration file **deploy-config.json**. This file will include all the details for the PowerShell-based deployment.
+The PowerShell script will deploy the following components in your Azure subscription:
+
+- App Registration including the required permissions
+- Resource Group
+- Service Bus Namespace with Topic
+- Event Hub Namespace with 3 Event Hubs
+- Azure Data Explorer Cluster
+- Azure Function App  
 
 Here an example:
 
@@ -325,10 +333,10 @@ $TenantId = "<Tenant Id>"
 #region Get Access Token
 
 $Body = @{
-    client_id=$ClientID
-    client_secret=$ClientSecret
-    grant_type="client_credentials"
-    scope="https://graph.microsoft.com/.default"
+    client_id = $ClientID
+    client_secret = $ClientSecret
+    grant_type = "client_credentials"
+    scope = "https://graph.microsoft.com/.default"
 }
 $OAuthReq = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.com/$TenantId/oauth2/v2.0/token -Body $Body
 $AccessToken = $OAuthReq.access_token
@@ -349,7 +357,7 @@ $SubscriptionUrl = "https://graph.microsoft.com/v1.0/subscriptions"
 $get = Invoke-RestMethod -Uri $SubscriptionUrl -Headers $Headers -Method GET
 
 if (!$get.value) {
-    Write-Host('No subscription found for the tenant id:' -f $TenantId)
+    Write-Host('No subscription found for the tenant id: {0}' -f $TenantId)
 } else {
     $get.value
 }
@@ -423,7 +431,7 @@ The default configuration of this solution will trigger the data ingest (for 20 
       "name": "mytimer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "0 */5 * * * *"
+      "schedule": "0 */1 * * * *"
     }
   ]
 }
@@ -434,10 +442,10 @@ If you have to handle a large amount of calls in your tenant then you can create
 Example additional function app:
 ```
 constants
-    constants.py
+|___ constants.py
 tcr_ingest_trigger
-    __ini__.py
-    function.json
+|___ __ini__.py
+|___ function.json
 .funcignore
 host.json
 proxies.json
@@ -446,7 +454,7 @@ requirements.txt
 
 ## Usage
 
-This sample project should shad some light on a potential process on how the Microsoft Teams call records data can be collected. Kusto will allow you to query large datasets very effectively in almost no time.
+This sample project should shed some light on a potential process on how the Microsoft Teams call records data can be collected. Kusto will allow you to query large datasets very effectively in almost no time.
 
 You can easially add additional tables and datasets to combine them in your queries to achive great results.
 
@@ -461,7 +469,7 @@ For the visualisation Power BI could be leveraged, to provide great looking visu
 
 ## Cost Estimate
 
-The solutions uses **sample SKUs/ Tier's** in all the provided sample Azure ARM Templates. Please make sure to adjust them accordingly based on your requirements and cost estimation.  
+The solutions uses **sample SKUs/ Tier's** in all the provided sample Azure ARM Templates. Please make sure to adjust them accordingly based on your requirements and cost estimation. 
 
 Example:  
 ![ARM SKU sample](https://www.tnext-labs.com/GitHub/teams-call-records-api/SKU-sample.png?raw=true)  
