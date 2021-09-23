@@ -13,39 +13,41 @@ The offical Microsoft documentation about the Call Records API can be found here
 
 ## Table of Contents
 
-- [project-scrubs](#project-scrubs)
+- [teams-call-records-api](#teams-call-records-api)
   - [Table of Contents](#table-of-contents)
   - [About The Project](#about-the-project)
     - [Built With](#built-with)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Deployment](#deployment)
-      - [1. Clone the repo or download the files directly](#1-Clone-the-repo-or-download-the-files-directly)
+      - [1. Clone the repo or download the files directly](#1-clone-the-repo-or-download-the-files-directly)
       - [2. Update the Configuration file](#2-update-the-configuration-file)
       - [3. Run the deployment script](#3-run-the-deployment-script)
       - [4. Publish the Azure Function with VSCode](#4-publish-the-azure-function-with-vscode)
       - [5. Update the Azure Function Configuration](#5-update-the-azure-function-configuration)
       - [6. Create the required tables in the ADX](#6-create-the-required-tables-in-the-adx)
       - [7. Create the data connections in ADX](#7-create-the-data-connections-in-adx)
-      - [8. Create the subscription](#8-create-the-subscription)
+      - [8. Update the subscription](#8-update-the-subscription)
       - [9. Test Call](#9-test-call)
-      - [10. Scale-Out Options](#10-scale-out-options)
+      - [10. Scale-out options](#10-scale-out-options)
   - [Usage](#usage)
-  - [Roadmap](#roadmap)
   - [Cost Estimate](#cost-estimate)
+  - [Roadmap](#roadmap)
   - [Contributing](#contributing)
   - [License](#license)
-  - [Contact](#contact)
   - [Appendix](#appendix)
+    - [Get Azure Location](#get-azure-location)
+    - [Get Tenant Id and Subscription Id](#get-tenant-id-and-subscription-id)
+    - [Azure Python SDKs](#azure-python-sdks)
 
 
 ## About The Project
 
 This project provides an example how to store the Microsoft Teams calls records data to Azure Kusto.
 
-The solution is build with Python-based Azure Functions an Service Bus and Event Hubs to store the Microsoft Teams call data to ADX (Azure Data Explorer) also known as Kusto.
+The solution is built with Python-based Azure Functions, Service Bus and Event Hubs to store the Microsoft Teams call data to ADX (Azure Data Explorer) also known as Kusto.
 
-The following diagram shows how the data get stored:  
+The following diagram shows how the data gets stored:  
 ![Solution Overview](https://www.tnext-labs.com/GitHub/teams-call-records-api/teams-call-records-api_overview.png?raw=true)  
 
 1. Azure Function to build and renew the Graph API Subscription
@@ -54,7 +56,7 @@ The following diagram shows how the data get stored:
 1. Time Triggered Azure Function('s) to trigger an additional function (Ingest) to proccess the call-id's
 1. Ingest Azure Function to fetch new call-id's from the Service Bus
 1. The function will then query the call records data from Graph API in a batch (20 call-id's)
-1. Then the call data will be split into 3 segments (Call, Participants, Sessions) and send to 3 Event Hubs. Data Connection's in ADX will write these segments then to corresponding tables in a database inside the cluster.
+1. Then the call data will be split into 3 segments (Call, Participants, Sessions) and sent to 3 Event Hubs. Data Connection's in ADX will write these segments then to corresponding tables in a database inside the cluster.
 
 The data can then be directly queried based on the call-id's using KQL or Power BI for example. All data is stored in raw JSON format as dynamic fields and require some additional data transformation based on your needs. In Addition, also other sources like ASN information or network details can be added to seperate tables to allow even more enhanced queries.
 
@@ -108,7 +110,7 @@ The PowerShell script will deploy the following components in your Azure subscri
 - Azure Data Explorer Cluster
 - Azure Function App  
 
-Here an example:
+Here's an example:
 
 ```json
 {
@@ -176,7 +178,7 @@ Make sure that the Azure Function extentsion is already installed in your VsCode
 
 ![PS Success](https://www.tnext-labs.com/GitHub/teams-call-records-api/Vscode_Extension.png?raw=true)
 
-Before you can publish the functions you need get the name of the deployed function app from the Azure portal.  
+Before you can publish the functions you need to get the name of the deployed function app from the Azure portal.  
 
 ![Function app name](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-name.png?raw=true)
 
@@ -192,7 +194,7 @@ You should now see a list of all your available function apps. Select the one th
 
 Click **Deploy** to start the deployment.
 
-You should see the following after functions are succesfully deployed.
+You should see the following after the functions are succesfully deployed.
 
 ![Deployment completed](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-deploy-complete.png?raw=true)
 
@@ -211,7 +213,7 @@ Open the highlighted **HTTP Trigger** functions to **Get the Function Url**.
 
 ![Get URL](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-urls.png?raw=true)
 
-Store the URL because you need it in the upcoming steps. Repeat the same step also for the other HTTP Trigger function.
+Store the URL because you will need it in the upcoming steps. Repeat the same step also for the other HTTP Trigger function.
 
 Now you can add the Urls to the function app configuration as shown below.
 
@@ -299,7 +301,7 @@ Select **Data Connections**:
 
 ![Adjusted function app config](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto-select-data-connections.png?raw=true)
 
-Add an new data connection:
+Add a new data connection:
 
 ![Adjusted function app config](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto-select-new-connection.png?raw=true)
 
@@ -314,13 +316,13 @@ Repeat the steps in this section for the two additonal required data connections
 
 #### 8. Update the subscription
 
-Before you able to update the renew time of the subscription, you need to verify that the subscription was created successfully.
-There a two available options:
+Before you are able to update the renew time of the subscription, you need to verify that the subscription was created successfully.
+There are two available options:
 
 - Use the Azure Function Monitor
 - Run the following Powershell Example
 
-The PowerShell example require the app registration information that are stored inside the Azure function configuration.
+The PowerShell example requires the app registration information that are stored inside the Azure function configuration.
 
 
 ```powershell
@@ -387,8 +389,9 @@ notificationUrlAppId      :
 
 
 
-As a final step you need to update the **tcr_subscription** function time trigger configuration in VsCode.
-Change the **schedule** value to "0 0 */4176 * * *" in the **function.json** as shown below and re-deploy the functions as you did the the step [4. Publish the Azure Function with VSCode](#4-publish-the-azure-function-with-vscode).
+As a final step you need to update the **tcr_subscription** function time trigger configuration in VSCode. Subscriptions expire after a length of time that varies by resource type. In order to avoid missing new call id's, the app needs to renew its subscriptions in advance of their expiry date. Maximum length of the callRecord subscription can be 4230 minutes (under 3 days). More details can be found here: [Maximum length of the subscription](https://docs.microsoft.com/en-us/graph/api/resources/subscription?view=graph-rest-1.0#maximum-length-of-subscription-per-resource-type)  
+
+Change the **schedule** value to "0 0 */4176 * * *" in the **function.json** as shown below and re-deploy the functions as you did in the step [4. Publish the Azure Function with VSCode](#4-publish-the-azure-function-with-vscode).
 
 
 ```json
@@ -412,16 +415,16 @@ Additonal details about the NCRONTAB expressions can be found here:
 
 #### 9. Test Call
 
-:telephone_receiver: Run a couple of test calls and check if the data get stored in the Kusto cluster. Keep in mind that it will take up to **15min.** until the Graph API will send the call id to the configured webhook.
+:telephone_receiver: Run a couple of test calls and check if the data gets stored in the Kusto cluster. Keep in mind that it will take up to **15min.** until the Graph API will send the call id to the configured webhook.
 Furthermore, also consider the additonal time (default: 5min.) configured in the Time Trigger function **tcr_ingest_trigger** when the function should run. *(More details can be found in the next section)*
 
-:mag_right: You can verfiy this be using the following query:
+:mag_right: You can verfiy this by using the following query:
 ![Kusto Check Count](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto_check_count.png?raw=true)
 
 
 #### 10. Scale-out options
 
-The default configuration of this solution will trigger the data ingest (for 20 calls at a time) every 5 Min. You can simple lower the **schedule** time inside the **tcr_ingest_trigger** function in the **function.json** file as shown below:
+The default configuration of this solution will trigger the data ingest (for 20 calls at a time) every 5 Min. You can simply lower the **schedule** time inside the **tcr_ingest_trigger** function in the **function.json** file as shown below:
 
 ```json
 {
@@ -456,14 +459,14 @@ requirements.txt
 
 This sample project should shed some light on a potential process on how the Microsoft Teams call records data can be collected. Kusto will allow you to query large datasets very effectively in almost no time.
 
-You can easially add additional tables and datasets to combine them in your queries to achive great results.
+You can easily add additional tables and datasets to combine them in your queries to achive great results.
 
 Example Query:
 ![Simple Sample Query](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto_query_example.png?raw=true)
 
-For the visualisation Power BI could be leveraged, to provide great looking visuals.
+For the visualisation, Power BI could be leveraged, to provide great looking visuals.
 
-> :bar_chart: This project currently don't included details on how to transform and query the stored data. You can find more details here:  
+> :bar_chart: This project currently doesn't included details on how to transform and query the stored data. You can find more details here:  
 >[Getting started with Kusto](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/concepts/)  
 >[Visualize data using the Azure Data Explorer connector for Power BI](https://docs.microsoft.com/en-us/azure/data-explorer/power-bi-connector)
 
