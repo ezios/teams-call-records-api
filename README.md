@@ -483,7 +483,8 @@ You can find more details about the pricing of the used components here:
 
 ## Roadmap  
 
-- Include paging support for truncated responses.
+- Include paging support for truncated responses
+- Update and extend batch handling process
 
 See the [open issues](https://github.com/tobiheim/teams-call-records-api/issues) for a list of proposed features (and known issues).
 
