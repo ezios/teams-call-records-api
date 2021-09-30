@@ -43,7 +43,7 @@ def main(mytimer: func.TimerRequest) -> None:
     # Auth body to request the token
     authbody = {
         "client_id" : constants.CLIENT_ID,
-        "client_secret" : constants.CLIENT_SECRECT,
+        "client_secret" : constants.CLIENT_SECRET,
         "grant_type" : "client_credentials",
         "scope": "https://graph.microsoft.com/.default"
     }

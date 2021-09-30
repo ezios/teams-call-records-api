@@ -243,7 +243,7 @@ function createFunctionApp {
         "APP_REGISTRATION_CLIENT_ID": {
             "value": $('"' + $appId + '"')
         },     
-        "APP_REGISTRATION_CLIENT_SECRECT":{
+        "APP_REGISTRATION_CLIENT_SECRET":{
             "value": $('"' + $AppRegistrationSecret + '"')
         },
         "APP_REGISTRATION_TENANT_ID": {
