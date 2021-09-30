@@ -217,7 +217,7 @@ Store the URL because you will need it in the upcoming steps. Repeat the same st
 
 Now you can add the Urls to the function app configuration as shown below.
 
-![Adjust values in function app config](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-config.png?raw=true)
+![Adjust values in function app config](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-config-n.png?raw=true)
 
 Please adjust the URL placeholder as shown in the following table:
 
@@ -226,7 +226,7 @@ Please adjust the URL placeholder as shown in the following table:
 |tcr_notification URL     |API_NOTIFICATION_URL         |
 |tcr_ingest_webhook URL   |INGESTFUNC_URL         |
 
-![Adjusted function app config](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-updated-values.png?raw=true)
+![Adjusted function app config](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-updated-values-n.png?raw=true)
 
 
 #### 6. Create the required tables in the ADX
@@ -408,7 +408,7 @@ Change the **schedule** value to "0 0 */4176 * * *" in the **function.json** as 
 }
 ```
 
-![Configure Subscription](https://www.tnext-labs.com/GitHub/teams-call-records-api/configure-subscription.png?raw=true)
+![Configure Subscription](https://www.tnext-labs.com/GitHub/teams-call-records-api/configure-subscription-n.png?raw=true)
 
 Additonal details about the NCRONTAB expressions can be found here:
 [Timer trigger for Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp)
