@@ -89,39 +89,44 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             
             # If the response body contains CallIDs
             if callDetails: 
-                callDetailsParsed = list(map(crTransformer.processCallDetails,callDetails))
+                
+                if any(batch_entry["status"] != 200 for batch_entry in callDetails):
+                    sys.exit('Graph batch query response includes failed responses - HTTP status != 200')
 
-                # Ingest call records data to event hub
-                eh_ingest = ehHelper(callDetailsParsed)
+                else:
+                    callDetailsParsed = list(map(crTransformer.processCallDetails,callDetails))
 
-    	        # Send call-IDs and participants information to participants Event Hub
-                try:
-                    logging.info('Send Participants to Azure Event Hub: %s', constants.EH_PARTICIPANTS_NAME)
-                    participants = eh_ingest.participantsTransform()
-                    eh_ingest.eh_send(constants.EH_PARTICIPANTS_CONNECTION_STR ,constants.EH_PARTICIPANTS_NAME , participants)
-                except:
-                    sys.exit('Failed to send Participants to Azure Event Hub and/or close Session')
+                    # Ingest call records data to event hub
+                    eh_ingest = ehHelper(callDetailsParsed)
 
-                # Send call-IDs and sessions information to participants Event Hub
-                try:
-                    logging.info('Send Sessions to Azure Event Hub: %s', constants.EH_SESSIONS_NAME)
-                    sessions = eh_ingest.sessionsTransform()
-                    eh_ingest.eh_send(constants.EH_SESSIONS_CONNECTION_STR, constants.EH_SESSIONS_NAME, sessions)
-                except:
-                    sys.exit('Failed to send Sessions to Azure Event Hub and/or close Session')
+                    # Send call-IDs and participants information to participants Event Hub
+                    try:
+                        logging.info('Send Participants to Azure Event Hub: %s', constants.EH_PARTICIPANTS_NAME)
+                        participants = eh_ingest.participantsTransform()
+                        eh_ingest.eh_send(constants.EH_PARTICIPANTS_CONNECTION_STR ,constants.EH_PARTICIPANTS_NAME , participants)
+                    except:
+                        sys.exit('Failed to send Participants to Azure Event Hub and/or close Session')
 
-                # Send call-IDs and general call information to calls Event Hub
-                try:
-                    logging.info('Send Calls to Azure Event Hub: %s', constants.EH_CALLS_NAME)
-                    calls = eh_ingest.callsTransform()
-                    eh_ingest.eh_send(constants.EH_CALLS_CONNECTION_STR, constants.EH_CALLS_NAME, calls)
-                except:
-                    sys.exit('Failed to send Calls to Azure Event Hub and/or close Session')
+                    # Send call-IDs and sessions information to participants Event Hub
+                    try:
+                        logging.info('Send Sessions to Azure Event Hub: %s', constants.EH_SESSIONS_NAME)
+                        sessions = eh_ingest.sessionsTransform()
+                        eh_ingest.eh_send(constants.EH_SESSIONS_CONNECTION_STR, constants.EH_SESSIONS_NAME, sessions)
+                    except:
+                        sys.exit('Failed to send Sessions to Azure Event Hub and/or close Session')
 
-                # Remove processed messages from Service Bus and close session
-                logging.info('Remove processed messages from Azure Service Bus and close session')
-                sb_connect.sb_cleanup(sb_receiver, messages)
-                return func.HttpResponse("", status_code=200)
+                    # Send call-IDs and general call information to calls Event Hub
+                    try:
+                        logging.info('Send Calls to Azure Event Hub: %s', constants.EH_CALLS_NAME)
+                        calls = eh_ingest.callsTransform()
+                        eh_ingest.eh_send(constants.EH_CALLS_CONNECTION_STR, constants.EH_CALLS_NAME, calls)
+                    except:
+                        sys.exit('Failed to send Calls to Azure Event Hub and/or close Session')
+
+                    # Remove processed messages from Service Bus and close session
+                    logging.info('Remove processed messages from Azure Service Bus and close session')
+                    sb_connect.sb_cleanup(sb_receiver, messages)
+                    return func.HttpResponse("", status_code=200)
 
             else:
                 # Close Service Bus session
