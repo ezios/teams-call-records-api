@@ -8,7 +8,6 @@ Sample project to collect the Microsoft Teams Call Records data.
 The offical Microsoft documentation about the Call Records API can be found here:  
 [Working with the call records API in Microsoft Graph](https://docs.microsoft.com/en-us/graph/api/resources/callrecords-api-overview?view=graph-rest-1.0)
 
-
 > :warning: **This is not an offical solution by Microsoft**. This **example** should demonstrate an potential process on how to collect Microsoft Teams call records data using Graph API and Azure ressources.
 
 ## Table of Contents
