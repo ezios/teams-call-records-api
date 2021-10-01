@@ -44,7 +44,7 @@ The offical Microsoft documentation about the Call Records API can be found here
 
 This project provides an example how to store the Microsoft Teams calls records data to Azure Kusto.
 
-The solution is built with Python-based Azure Functions, Service Bus and Event Hubs to store the Microsoft Teams call data to ADX (Azure Data Explorer) also known as Kusto.
+The solution is built with Python-based Azure Functions, Service Bus and Event Hubs to store the Microsoft Teams call data to ADX (Azure Data Explorer) also known as Kusto. 
 
 The following diagram shows how the data gets stored:  
 ![Solution Overview](https://www.tnext-labs.com/GitHub/teams-call-records-api/teams-call-records-api_overview.png?raw=true)  
