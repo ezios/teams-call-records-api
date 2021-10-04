@@ -461,7 +461,7 @@ This sample project should shed some light on a potential process on how the Mic
 You can easily add additional tables and datasets to combine them in your queries to achive great results.
 
 Example Query:
-![Simple Sample Query](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto_query_example.png?raw=true)
+![Simple Sample Query](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto_query_example_1.png?raw=true)
 
 For the visualisation, Power BI could be leveraged, to provide great looking visuals.
 
