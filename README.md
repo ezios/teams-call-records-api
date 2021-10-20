@@ -484,6 +484,7 @@ You can find more details about the pricing of the used components here:
 
 - Include paging support for truncated responses
 - Update and extend batch handling process
+- Store app registration in Azure Key Vault
 
 See the [open issues](https://github.com/tobiheim/teams-call-records-api/issues) for a list of proposed features (and known issues).
 
