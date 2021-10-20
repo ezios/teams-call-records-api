@@ -343,7 +343,7 @@ $OAuthReq = Invoke-RestMethod -Method Post -Uri https://login.microsoftonline.co
 $AccessToken = $OAuthReq.access_token
 
 #endregion 
-#region Create Webhook Subscription
+#region Verify Subscription
 
 ## Request Header
 $Headers= @{'Authorization' = "Bearer $AccessToken"
@@ -354,7 +354,7 @@ $Headers= @{'Authorization' = "Bearer $AccessToken"
 ## Webhook Subscription URL
 $SubscriptionUrl = "https://graph.microsoft.com/v1.0/subscriptions"
 
-## Post Webhook Subscription Request
+## GET Graph API Subscription
 $get = Invoke-RestMethod -Uri $SubscriptionUrl -Headers $Headers -Method GET
 
 if (!$get.value) {
