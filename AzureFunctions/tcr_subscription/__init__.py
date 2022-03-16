@@ -14,7 +14,7 @@
 
 import requests
 import uuid
-import sys, json
+import json
 from datetime import datetime, timedelta, timezone
 import logging
 import azure.functions as func
@@ -49,13 +49,11 @@ def main(mytimer: func.TimerRequest) -> None:
     }
 
     # Fetch Authentication Token form Graph API
-    try:
-        authresponse = requests.post('https://login.microsoftonline.com/{0}/oauth2/v2.0/token'.format(constants.TENANT_ID), data= authbody)
-    except:
-        sys.exit('Query for Auth-Token failed - Check Authentication Body')
+    authresponse = requests.post('https://login.microsoftonline.com/{0}/oauth2/v2.0/token'.format(constants.TENANT_ID), data= authbody)
+    
+    if authresponse.status_code != 200:
+        raise Exception('Query for Auth-Token failed - Check Authentication Body')
 
-    if authresponse == None:
-        sys.exit('Failed to get access token Auth-Token')
     else:
         accessToken = authresponse.json()['access_token']
 
@@ -69,14 +67,54 @@ def main(mytimer: func.TimerRequest) -> None:
     ## Webhook Subscription URL
     subscriptionUrl = "https://graph.microsoft.com/v1.0/subscriptions"
 
-    ## New expiry time for subscription renewal
-    expiryTime = (datetime.utcnow() + timedelta(minutes=4229)).isoformat() + "Z"
-
     # Get current active subscriptions
-    subResponse = json.loads(requests.get(subscriptionUrl, headers= headers).text)
+    subRes = requests.get(subscriptionUrl, headers= headers)
 
-    # Check subscription query response
-    ids = my_subscriptionCheck(subResponse)
+    if subRes.status_code == 200:
+
+        # Parse the response to JSON
+        sub_Json = json.loads(subRes.text)
+
+        # Check if paging is required
+        if '@odata.nextLink' in sub_Json.keys():
+        
+            logging.info("Result includes paging - Iterate through additional result pages")
+
+            # Get Link to next page
+            subNextLink = sub_Json['@odata.nextLink']
+            
+            # Repeat until no paging link is provided
+            while subNextLink != None:
+                # Query next page
+                pagingQuery = requests.get(subNextLink, headers= headers)
+                
+                if pagingQuery.status_code == 200:
+                    paging_JSON = json.loads(pagingQuery.text)
+
+                    # Add subscription to total result    
+                    activeSubs = len(paging_JSON['value'])
+                    i = 0
+                    while i < activeSubs:
+                        sub_Json['value'].append(paging_JSON['value'][i])
+                        i += 1
+                    
+                    # Check if additional an paging link is provided
+                    if '@odata.nextLink' in paging_JSON.keys():
+                        subNextLink = paging_JSON['@odata.nextLink']
+                    else:
+                        subNextLink = None
+
+                else:
+                    raise Exception("Failed to query nextLink of paged subscription response")
+
+    else:
+        raise Exception("Failed to query existing Graph API subscriptions")
+
+    # Check subscription query response if Call Records API subscription is included
+    ids = my_subscriptionCheck(sub_Json)
+
+    # Experation time for subscription (new or patch)
+    expiryTime = (datetime.utcnow() + timedelta(minutes=4229)).isoformat() + "Z"
 
     # Create new subscription
     if len(ids) == 0:
@@ -94,18 +132,20 @@ def main(mytimer: func.TimerRequest) -> None:
             "resource" : "communications/callRecords"
         }
         
-        try:
-            # POST new subscription to Graph API
-            createResponse = requests.post(subscriptionUrl, headers= headers, json= newSubBody)
-            logging.info(createResponse.text)
-        except:
-            sys.exit('Failed to create new subscription - Please check subscription body')
+        # POST new subscription
+        createResponse = requests.post(subscriptionUrl, headers= headers, json= newSubBody)
 
+        if createResponse.status_code != 201:
+            raise Exception('Failed to create new subscription - Please check subscription body')
+
+        logging.info(createResponse.text)
+
+    # Check if more then one subscription exists
     elif len(ids) > 1:
-        sys.exit('More then one Call Records API subscriptions found')
+        raise Exception('More then one Call Records API subscriptions found. Please check the subscription count manually and resolve the problem')
 
     else: 
-        # Get the Call Id as string
+        # Get the subscription-Id as string
         id = str(ids[0])
         
         # Create PATCH subscription body
@@ -116,9 +156,9 @@ def main(mytimer: func.TimerRequest) -> None:
         # PATCH existing subscription
         logging.info("One Call Records API subscriptions found - Patch existing subscription")
         
-        try:
-            patchResponse = requests.patch('{0}/{1}'.format(subscriptionUrl,id), headers= headers, json= expirationBody)
-            logging.info(patchResponse.text)
-        except:
-            sys.exit('More then one Call Records API subscriptions found')
-            
+        patchRes = requests.patch('{0}/{1}'.format(subscriptionUrl,id), headers= headers, json= expirationBody)
+
+        if patchRes.status_code != 200:
+            raise Exception('Failed to patch existing Subscription')
+
+        logging.info(patchRes.text)
