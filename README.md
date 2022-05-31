@@ -74,7 +74,7 @@ The data can then be directly queried based on the call-id's using KQL or Power 
 
 To get a copy up and running make sure to meet the requirements and follow the steps below.
 
-> :exclamation: Please make sure to first explore how the solution is build and then pilot the solution in an lab or demo enviroment before you consider any production use.
+> :exclamation: Please make sure to first explore 🔭 how this sample project is build and then test the project in a lab or demo environment. This project should help to gain knowledge how to interact with the Microsoft Graph CallRecords API to build your own great solutions 🚀.
 
 ### Prerequisites
 
