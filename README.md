@@ -5,10 +5,10 @@
 
 Sample project to collect the Microsoft Teams Call Records data. 
 
-The offical Microsoft documentation about the Call Records API can be found here:  
+The official Microsoft documentation about the Call Records API can be found here:  
 [Working with the call records API in Microsoft Graph](https://docs.microsoft.com/en-us/graph/api/resources/callrecords-api-overview?view=graph-rest-1.0)
 
-> :warning: **This is not an offical solution by Microsoft**. This **example** should demonstrate an potential process on how to collect Microsoft Teams call records data using Graph API and Azure ressources.
+> :warning: **This is NOT an official solution by Microsoft**. This **example** should demonstrate an potential process on how to collect Microsoft Teams call records data using Graph API and Azure resources.
 
 ## Table of Contents
 
@@ -52,12 +52,12 @@ The following diagram shows how the data gets stored:
 1. Azure Function to build and renew the Graph API Subscription
 1. Azure Function as Webhook to receive new call-id's after a call ends
 1. Call-id's are written to a Azure Service Bus
-1. Time Triggered Azure Function('s) to trigger an additional function (Ingest) to proccess the call-id's
+1. Time Triggered Azure Function('s) to trigger an additional function (Ingest) to process the call-id's
 1. Ingest Azure Function to fetch new call-id's from the Service Bus
 1. The function will then query the call records data from Graph API in a batch (20 call-id's)
 1. Then the call data will be split into 3 segments (Call, Participants, Sessions) and sent to 3 Event Hubs. Data Connection's in ADX will write these segments then to corresponding tables in a database inside the cluster.
 
-The data can then be directly queried based on the call-id's using KQL or Power BI for example. All data is stored in raw JSON format as dynamic fields and require some additional data transformation based on your needs. In Addition, also other sources like ASN information or network details can be added to seperate tables to allow even more enhanced queries.
+The data can then be directly queried based on the call-id's using KQL or Power BI for example. All data is stored in raw JSON format as dynamic fields and require some additional data transformation based on your needs. In Addition, also other sources like ASN information or network details can be added to separate tables to allow even more enhanced queries.
 
 
 ### Built With
@@ -85,7 +85,7 @@ The solution require an Office 365 and Azure subscription including the followin
 - [Azure Az PowerShell Module](https://docs.microsoft.com/en-us/powershell/azure/new-azureps-module-az?view=azps-6.3.0)
 - [Visual Studio Code](https://code.visualstudio.com/)
 - Access to Azure AD to create an App Registration
-- Access to an Azure subscription to create a new Ressource Group and the required components in it
+- Access to an Azure subscription to create a new Resource Group and the required components in it
 
 ### Deployment
 
@@ -142,7 +142,7 @@ Here's an example:
 
 In the [Appendix](#appendix) you can find additional details on how to get the tenant- and subscription-id. 
 
-Make sure that all selected names are using an allowed syntax for the indivitual Azure components.
+Make sure that all selected names are using an allowed syntax for the individual Azure components.
 
 You can find more details here:  
 [Considerations for naming Azure resources](https://docs.microsoft.com/en-us/azure/azure-government/documentation-government-concept-naming-resources#:~:text=Naming%20considerations%20Customers%20should%20not%20include%20sensitive%20or,Examples%20of%20sensitive%20information%20include%20data%20subject%20to%3A)
@@ -152,7 +152,7 @@ You can find more details here:
 
 Make sure that the two [required PowerShell Modules](#prerequisites) are already installed.
 
-Next you can run the Azure deployment. The script requires the following nessacary parameters:  
+Next you can run the Azure deployment. The script requires the following necessary parameters:  
 
 `./deploy.ps1 -AdminUsername <Azure Subscription and Global Admin> -Mfa <$true or $false>`  
 
@@ -173,7 +173,7 @@ After a successful run of the script you should get the following output:
 
 Next you need to publish the functions to the newly created Azure function app. Open VsCode and then open the folder **Azure Functions** from the cloned repository. 
 
-Make sure that the Azure Function extentsion is already installed in your VsCode. Either install the **Azure Tools** or the **Azure Functions** extension.  
+Make sure that the Azure Function extension is already installed in your VsCode. Either install the **Azure Tools** or the **Azure Functions** extension.  
 
 ![PS Success](https://www.tnext-labs.com/GitHub/teams-call-records-api/Vscode_Extension.png?raw=true)
 
@@ -193,7 +193,7 @@ You should now see a list of all your available function apps. Select the one th
 
 Click **Deploy** to start the deployment.
 
-You should see the following after the functions are succesfully deployed.
+You should see the following after the functions are successfully deployed.
 
 ![Deployment completed](https://www.tnext-labs.com/GitHub/teams-call-records-api/function-app-deploy-complete.png?raw=true)
 
@@ -308,7 +308,7 @@ Configure the data connection as shown below:
 
 ![Adjusted function app config](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto-connection-creation.png?raw=true)
 
-Repeat the steps in this section for the two additonal required data connections:
+Repeat the steps in this section for the two additional required data connections:
 
 - participants
 - sessions
@@ -409,15 +409,15 @@ Change the **schedule** value to "0 0 */4176 * * *" in the **function.json** as 
 
 ![Configure Subscription](https://www.tnext-labs.com/GitHub/teams-call-records-api/configure-subscription-n.png?raw=true)
 
-Additonal details about the NCRONTAB expressions can be found here:
+Additional details about the NCRONTAB expressions can be found here:
 [Timer trigger for Azure Functions](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=csharp)
 
 #### 9. Test Call
 
 :telephone_receiver: Run a couple of test calls and check if the data gets stored in the Kusto cluster. Keep in mind that it will take up to **15min.** until the Graph API will send the call id to the configured webhook.
-Furthermore, also consider the additonal time (default: 5min.) configured in the Time Trigger function **tcr_ingest_trigger** when the function should run. *(More details can be found in the next section)*
+Furthermore, also consider the additional time (default: 5min.) configured in the Time Trigger function **tcr_ingest_trigger** when the function should run. *(More details can be found in the next section)*
 
-:mag_right: You can verfiy this by using the following query:
+:mag_right: You can verify this by using the following query:
 ![Kusto Check Count](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto_check_count.png?raw=true)
 
 
@@ -439,7 +439,7 @@ The default configuration of this solution will trigger the data ingest (for 20 
 }
 ```
 
-If you have to handle a large amount of calls in your tenant then you can create additional function apps and **only** deploy the following function and helper modules in there. This will allow you to trigger the **tcr_ingest_webhook** function in parallel based on the **schedule** value definded in the function.json. Make sure to update the function app configuration accordingly in the newly created function apps.
+If you have to handle a large amount of calls in your tenant then you can create additional function apps and **only** deploy the following function and helper modules in there. This will allow you to trigger the **tcr_ingest_webhook** function in parallel based on the **schedule** value defined in the function.json. Make sure to update the function app configuration accordingly in the newly created function apps.
 
 Example additional function app:
 ```
@@ -458,12 +458,12 @@ requirements.txt
 
 This sample project should shed some light on a potential process on how the Microsoft Teams call records data can be collected. Kusto will allow you to query large datasets very effectively in almost no time.
 
-You can easily add additional tables and datasets to combine them in your queries to achive great results.
+You can easily add additional tables and datasets to combine them in your queries to achieve great results.
 
 Example Query:
 ![Simple Sample Query](https://www.tnext-labs.com/GitHub/teams-call-records-api/kusto_query_example_1.png?raw=true)
 
-For the visualisation, Power BI could be leveraged, to provide great looking visuals.
+For the visualization, Power BI could be leveraged, to provide great looking visuals.
 
 > :bar_chart: This project currently doesn't included details on how to transform and query the stored data. You can find more details here:  
 >[Getting started with Kusto](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/concepts/)  
