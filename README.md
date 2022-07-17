@@ -102,7 +102,7 @@ git clone https://github.com/tobiheim/teams-call-records-api.git
 First you need to adjust the configuration file **deploy-config.json**. This file will include all the details for the PowerShell-based deployment.
 The PowerShell script will deploy the following components in your Azure subscription:
 
-- App Registration including the required permissions
+- App Registration including the required permissions (**Note:** Will expire after **90** days)
 - Resource Group
 - Service Bus Namespace with Topic
 - Event Hub Namespace with 3 Event Hubs

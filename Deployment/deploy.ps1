@@ -13,7 +13,7 @@
 
 -----------------------------------------------------------------------------------------------------------------------------------
 Authors : Tobias Heim
-Version : 1.0
+Version : 1.0.1
 -----------------------------------------------------------------------------------------------------------------------------------
 
 DISCLAIMER:
@@ -24,12 +24,50 @@ DISCLAIMER:
     loss of business information, or other pecuniary loss) arising out of the use of or inability to use the code. 
 #>
 
+<# Valid Azure locations
+DisplayName          Latitude    Longitude    Name
+-------------------  ----------  -----------  ------------------
+East Asia            22.267      114.188      eastasia
+Southeast Asia       1.283       103.833      southeastasia
+Central US           41.5908     -93.6208     centralus
+East US              37.3719     -79.8164     eastus
+East US 2            36.6681     -78.3889     eastus2
+West US              37.783      -122.417     westus
+North Central US     41.8819     -87.6278     northcentralus
+South Central US     29.4167     -98.5        southcentralus
+North Europe         53.3478     -6.2597      northeurope
+West Europe          52.3667     4.9          westeurope
+Japan West           34.6939     135.5022     japanwest
+Japan East           35.68       139.77       japaneast
+Brazil South         -23.55      -46.633      brazilsouth
+Australia East       -33.86      151.2094     australiaeast
+Australia Southeast  -37.8136    144.9631     australiasoutheast
+South India          12.9822     80.1636      southindia
+Central India        18.5822     73.9197      centralindia
+West India           19.088      72.868       westindia
+Canada Central       43.653      -79.383      canadacentral
+Canada East          46.817      -71.217      canadaeast
+UK South             50.941      -0.799       uksouth
+UK West              53.427      -3.084       ukwest
+West Central US      40.890      -110.234     westcentralus
+West US 2            47.233      -119.852     westus2
+Korea Central        37.5665     126.9780     koreacentral
+Korea South          35.1796     129.0756     koreasouth
+France Central       46.3772     2.3730       francecentral
+France South         43.8345     2.1972       francesouth
+Australia Central    -35.3075    149.1244     australiacentral
+Australia Central 2  -35.3075    149.1244     australiacentral2
+South Africa North   -25.731340  28.218370    southafricanorth
+South Africa West    -34.075691  18.843266    southafricawest
+
+#>
+
 Param(
     [Parameter(Mandatory = $true, ValueFromPipeline = $true)][String]$AdminUsername,
     [Parameter(Mandatory = $true)][bool]$Mfa
 )
 
-Write-Host "Starting Microsoft Teams Call Records API Solution Deployment`nVersion 1.0 - September 2021" -ForegroundColor Yellow
+Write-Host "Starting Microsoft Teams Call Records API Solution Deployment`nVersion 1.0.1 - July 2022" -ForegroundColor Yellow
 
 #region global functions
 
@@ -85,8 +123,7 @@ function getAzureADApp {
 function createAzureADApp {
     param (
         [String]$appName,
-        [string]$manifestPath,
-        [string]$appSecret
+        [string]$manifestPath
     )
     # Check if the app already exists
     $app = GetAzureADApp -Name $appName
@@ -94,7 +131,7 @@ function createAzureADApp {
     if ($app) {
         # Update Azure ad app registration using Azure CLI
         Write-Host('Azure AD App Registration {0} already exists - updating existing app...' -f $appName)
-        az ad app update --id $app.appId --required-resource-accesses $manifestPath --password $appSecret |ConvertFrom-Json
+        az ad app update --id $app.appId --required-resource-accesses $manifestPath
         if (!$?) {
             throw('Failed to update AD App {0}' -f $appName)
         }
@@ -105,7 +142,7 @@ function createAzureADApp {
     else {
         # Create Azure ad app registration using Azure CLI
         Write-Host('Creating Azure AD App Registration: {0}...' -f $appName)
-        az ad app create --display-name $appName --required-resource-accesses $manifestPath --password $appSecret --end-date '2299-12-31T11:59:59+00:00' |ConvertFrom-Json
+        az ad app create --display-name $appName --required-resource-accesses $manifestPath
         if (!$?) {
             throw('Failed to create AD App Registration {0}' -f $appName)
         }
@@ -113,16 +150,33 @@ function createAzureADApp {
         Start-Sleep -s 60
         Write-Host('Successfully created Azure AD App Registration: {0}...' -f $appName)
     }
+
+    # Get the app registration details
+    $app = GetAzureADApp -Name $appName
+
+    # End-date for the secret is set to 90 days from now
+    $endDate = (Get-Date).AddDays(90).ToString("yyyy-MM-dd")
+
+    # Set the app registration secret
+    Write-Host('Setting Azure AD App Registration Secret: {0}...' -f $appName)
+    $appSec = az ad app credential reset --id $app.appId --end-date $endDate
+    if (!$?) {
+        throw('Failed to set Azure AD App Registration Secret: {0}' -f $appName)
+    }
+    $appSecValue = ($appSec | ConvertFrom-Json).password
+
     # Grant admin consent for app registration required permissions using Azure CLI
     Write-Host('Granting admin content to App Registration: {0}' -f $appName)
-    $app = GetAzureADApp -Name $appName
     az ad app permission admin-consent --id $app.appId |ConvertFrom-Json
     if (!$?) {
         throw('Failed to grant admin content to App Registration: {0}' -f $appName)
     }
+
     Write-Host "Waiting for admin consent to complete..."
     Start-Sleep -s 60
     Write-Host('Granted admin consent to App Regiration: {0}' -f $AppName)
+
+    return $appsecValue
 }
 
 # Function to create Service Bus (incl. Subscription and Access Rules)
@@ -387,13 +441,8 @@ validateAzureLocation -Location $Location
 # Create Azure resource group
 createResourceGroup -AzureRgName $ResourceGroup -AzureLocation $Location
 
-# Generate base64 secret for app registration
-$guid = New-Guid
-$appSecret = ([System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(($guid))))
-$appSecret += ((33..33) + (35..36) + (45..45) + (63..64) + (126..126) |ForEach-Object {[char]$_}) | Get-Random -Count 1
-
-# Create Azure App Regiration
-createAzureADApp -appName $AppRegistrationName -manifestPath $appManifest -appSecret $appSecret
+# Create or Update Azure App Regiration and get the App Registration Secret
+$appSecret = createAzureADApp -appName $AppRegistrationName -manifestPath $appManifest
 
 # Create Azure Service Bus
 $sbParams = @{
