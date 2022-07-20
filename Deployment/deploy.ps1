@@ -67,7 +67,7 @@ Param(
     [Parameter(Mandatory = $true)][bool]$Mfa
 )
 
-Write-Host "Starting Microsoft Teams Call Records API Solution Deployment`nVersion 1.0.1 - July 2022" -ForegroundColor Yellow
+Write-Host "Starting Microsoft Teams Call Records API Sample Solution Deployment`nVersion 1.0.1 - July 2022" -ForegroundColor Yellow
 
 #region global functions
 
@@ -131,7 +131,7 @@ function createAzureADApp {
     if ($app) {
         # Update Azure ad app registration using Azure CLI
         Write-Host('Azure AD App Registration {0} already exists - updating existing app...' -f $appName)
-        az ad app update --id $app.appId --required-resource-accesses $manifestPath
+        az ad app update --id $app.appId --required-resource-accesses $manifestPath |Out-Null
         if (!$?) {
             throw('Failed to update AD App {0}' -f $appName)
         }
@@ -142,17 +142,17 @@ function createAzureADApp {
     else {
         # Create Azure ad app registration using Azure CLI
         Write-Host('Creating Azure AD App Registration: {0}...' -f $appName)
-        az ad app create --display-name $appName --required-resource-accesses $manifestPath
+        az ad app create --display-name $appName --required-resource-accesses $manifestPath |Out-Null
         if (!$?) {
             throw('Failed to create AD App Registration {0}' -f $appName)
         }
         Write-Host('Waiting for App Registration {0} to finish creating...' -f $appName)
         Start-Sleep -s 60
         Write-Host('Successfully created Azure AD App Registration: {0}...' -f $appName)
-    }
 
-    # Get the app registration details
-    $app = GetAzureADApp -Name $appName
+        # Get the app registration details
+        $app = GetAzureADApp -Name $appName
+    }
 
     # End-date for the secret is set to 90 days from now
     $endDate = (Get-Date).AddDays(90).ToString("yyyy-MM-dd")
@@ -163,20 +163,21 @@ function createAzureADApp {
     if (!$?) {
         throw('Failed to set Azure AD App Registration Secret: {0}' -f $appName)
     }
-    $appSecValue = ($appSec | ConvertFrom-Json).password
+    # Get app registration secret
+    $appDetails = $appSec |ConvertFrom-Json
+    $appSecValue = ($appDetails).password
 
     # Grant admin consent for app registration required permissions using Azure CLI
     Write-Host('Granting admin content to App Registration: {0}' -f $appName)
-    az ad app permission admin-consent --id $app.appId |ConvertFrom-Json
+    az ad app permission admin-consent --id $app.appId |Out-Null
     if (!$?) {
         throw('Failed to grant admin content to App Registration: {0}' -f $appName)
     }
-
     Write-Host "Waiting for admin consent to complete..."
     Start-Sleep -s 60
     Write-Host('Granted admin consent to App Regiration: {0}' -f $AppName)
 
-    return $appsecValue
+    return $appSecValue
 }
 
 # Function to create Service Bus (incl. Subscription and Access Rules)
@@ -506,4 +507,4 @@ $appSecret = $null
 
 #endregion
 
-Write-Host "Successfully deployed Microsoft Teams Call Records API Solution. `nComplete the configuration based on the provided guidance on GitHub." -ForegroundColor Green
+Write-Host "Successfully deployed Microsoft Teams Call Records API Sample Solution. `nComplete the configuration based on the provided guidance on GitHub." -ForegroundColor Green
